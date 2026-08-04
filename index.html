@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>🍳 Flappy</title>
+    <title>FlapUp! - 🍳 Flappy Emoji Game</title>
     <style>
         * {
             box-sizing: border-box;
@@ -103,44 +103,35 @@
             transform: none;
             box-shadow: none;
         }
-        /* Style pour les petits boutons */
-        .btn-small {
-            /* Ces propriétés sont maintenant surchargées par .btn-tips-minimal */
-        }
-
-        /* Nouveau style pour le bouton Tips et les boutons de niveau */
         .btn-tips-minimal {
-            background: rgba(139, 195, 74, 0.2); /* Vert très clair, semi-transparent */
-            color: rgba(255, 255, 255, 0.8); /* Texte blanc subtil */
-            border: 1px solid rgba(255, 255, 255, 0.3); /* Bordure fine et discrète */
-            padding: 4px 10px; /* Padding réduit */
-            font-size: 14px; /* Taille de police réduite */
+            background: rgba(139, 195, 74, 0.2);
+            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 4px 10px;
+            font-size: 14px;
             font-weight: bold;
-            border-radius: 10px; /* Rayon de bordure réduit */
+            border-radius: 10px;
             cursor: pointer;
-            box-shadow: none; /* Pas d'ombre par défaut */
-            transition: all 0.1s ease; /* Transition douce */
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.3); /* Ombre pour le texte pour la lisibilité */
-            white-space: nowrap; /* Empêche le texte de s'enrouler */
+            box-shadow: none;
+            transition: all 0.1s ease;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            white-space: nowrap;
         }
-        /* Style pour l'état 'appuyé' du bouton Tips */
         .btn-tips-minimal.btn-pressed {
-            background: #689F38; /* Vert plus foncé quand actif */
+            background: #689F38;
             color: white;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.2); /* Ombre interne subtile */
-            transform: translateY(0.5px); /* Léger décalage vers le bas */
-            border-color: #689F38; /* Bordure de la même couleur que le fond */
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+            transform: translateY(0.5px);
+            border-color: #689F38;
         }
-        /* Style pour les boutons Tips désactivés */
         .btn-tips-minimal:disabled {
-            background: rgba(205, 220, 57, 0.1); /* Fond semi-transparent plus pâle */
-            color: rgba(255, 255, 255, 0.4); /* Texte très estompé */
-            border-color: rgba(255, 255, 255, 0.1); /* Bordure très estompée */
+            background: rgba(205, 220, 57, 0.1);
+            color: rgba(255, 255, 255, 0.4);
+            border-color: rgba(255, 255, 255, 0.1);
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
         }
-
         #score-display {
             position: absolute;
             top: 20px;
@@ -170,27 +161,22 @@
             opacity: 1;
             transform: translateX(-50%) translateY(-5px);
         }
-
-        /* Conteneur pour toutes les options (Tips et niveaux de départ) */
         .options-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px; /* Espacement entre les lignes d'options */
+            gap: 10px;
             margin-top: 15px;
-            /* background: rgba(0, 0, 0, 0.25);  A commenter ou enlever pour un design plus épuré */
-            padding: 0; 
+            padding: 0;
             border-radius: 20px;
             color: white;
             font-weight: bold;
         }
-        /* Conteneur pour les boutons de sélection de niveau de départ */
         .level-start-options {
             display: flex;
-            gap: 10px; /* Espacement entre les boutons de niveau */
+            gap: 10px;
         }
-
-        #temp-message { /* Style pour les messages temporaires */
+        #temp-message {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -205,10 +191,26 @@
             z-index: 20;
             opacity: 0;
             transition: opacity 0.3s ease;
-            pointer-events: none; /* Permet de cliquer à travers */
+            pointer-events: none;
         }
         #temp-message.show {
             opacity: 1;
+        }
+        footer {
+            margin-top: 8px;
+            text-align: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 11px;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        footer a {
+            color: #ffe082;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        footer a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -217,20 +219,18 @@
 <div id="game-container">
     <div id="score-display">0 🥚</div>
     <div id="credit-popup">+1 🥚</div>
-    <div id="temp-message"></div> <!-- Pour les messages temporaires -->
+    <div id="temp-message"></div>
     
     <canvas id="gameCanvas" width="360" height="640"></canvas>
     
     <div id="start-screen" class="overlay">
-        <h1 id="start-title">Flap Flap <span id="start-title-emoji">🐣</span></h1>
+        <h1 id="start-title">FlapUp! <span id="start-title-emoji">🐣</span></h1>
         <div id="start-credit-display" class="credit-info">🪺 5</div>
         
-        <!-- Conteneur pour toutes les options de démarrage -->
         <div class="options-container">
             <div class="guide-control">
                 <button id="guide-toggle-btn-start" class="btn-tips-minimal">💡Tips (1🥚)</button>
             </div>
-            <!-- NOUVEAU : Conteneur pour les boutons de sélection de niveau de départ -->
             <div class="level-start-options">
                 <button id="start-level-30-btn" class="btn-tips-minimal" style="display:none;"></button>
                 <button id="start-level-50-btn" class="btn-tips-minimal" style="display:none;"></button>
@@ -251,12 +251,10 @@
         </div>
         <div id="gameover-credit-display" class="credit-info" style="margin-top: 5px;">🪺 5</div>
 
-        <!-- Conteneur pour toutes les options de démarrage sur l'écran Game Over -->
         <div class="options-container" style="margin-bottom: 15px;">
             <div class="guide-control">
                 <button id="guide-toggle-btn-gameover" class="btn-tips-minimal">💡Tips (1🥚)</button>
             </div>
-            <!-- NOUVEAU : Conteneur pour les boutons de sélection de niveau de départ -->
             <div class="level-start-options">
                 <button id="gameover-level-30-btn" class="btn-tips-minimal" style="display:none;"></button>
                 <button id="gameover-level-50-btn" class="btn-tips-minimal" style="display:none;"></button>
@@ -266,6 +264,10 @@
         <button id="restart-btn" class="btn" onclick="startGame(event)">REJOUER</button>
     </div>
 </div>
+
+<footer>
+    © 2026 FlapUp! - Tous droits réservés[span_1](start_span)[span_1](end_span). <a href="https://ko-fi.com/VOTRE_PSEUDO" target="_blank">☕ Recharger (1€)</a>
+</footer>
 
 <script>
     const canvas = document.getElementById('gameCanvas');
@@ -290,14 +292,12 @@
 
     const guideToggleBtnStart = document.getElementById('guide-toggle-btn-start');
     const guideToggleBtnGameover = document.getElementById('guide-toggle-btn-gameover');
-    // NOUVEAU : Références aux boutons de sélection de niveau
     const startLevel30Btn = document.getElementById('start-level-30-btn');
     const startLevel50Btn = document.getElementById('start-level-50-btn');
     const gameoverLevel30Btn = document.getElementById('gameover-level-30-btn');
     const gameoverLevel50Btn = document.getElementById('gameover-level-50-btn');
 
     const tempMessage = document.getElementById('temp-message');
-
     const container = document.getElementById('game-container');
 
     let gameState = 'START';
@@ -305,16 +305,16 @@
     let bestScore = 0;
     let credits = 5;
     let lastCreditTime = Date.now();
-    let showOptimalPathGuide = false; // Vrai si le guide est ACTIF pour la partie EN COURS
-    let guideRequestedForNextGame = false; // Vrai si le joueur A DEMANDÉ le guide pour la prochaine partie
-    let selectedStartLevel = 0; // NOUVEAU : 0 pour normal, 30 ou 50 pour les niveaux de départ
+    let showOptimalPathGuide = false;
+    let guideRequestedForNextGame = false;
+    let selectedStartLevel = 0;
 
     const MAX_CREDITS = 5;
-    const REFILL_TIME_MS = 10 * 60 * 1000; // 10 minutes en millisecondes
-    const COST_NORMAL_GAME = 1; // Coût d'une partie normale
-    const COST_GUIDE_OPTION = 1; // Coût de l'option Tips
-    const COST_LEVEL_30 = 10; // NOUVEAU : Coût pour commencer au niveau 30
-    const COST_LEVEL_50 = 20; // NOUVEAU : Coût pour commencer au niveau 50
+    const REFILL_TIME_MS = 10 * 60 * 1000;
+    const COST_NORMAL_GAME = 1;
+    const COST_GUIDE_OPTION = 1;
+    const COST_LEVEL_30 = 10;
+    const COST_LEVEL_50 = 20;
 
     function getPlayerEmojiForScore(s) {
         if (s >= 120) return '🐉';
@@ -330,23 +330,21 @@
         else return '🐣'; 
     }
 
-    // --- Chargement LocalStorage ---
     try {
-        bestScore = parseInt(localStorage.getItem('flappy_emoji_best')) || 0;
-        const savedCredits = localStorage.getItem('flappy_emoji_credits');
-        const savedTime = localStorage.getItem('flappy_emoji_last_time');
-        const savedGuidePref = localStorage.getItem('flappy_emoji_guide_pref'); 
-        const savedStartLevelPref = localStorage.getItem('flappy_emoji_start_level_pref'); // NOUVEAU : Chargement préférence niveau de départ
+        bestScore = parseInt(localStorage.getItem('flapup_best')) || 0;
+        const savedCredits = localStorage.getItem('flapup_credits');
+        const savedTime = localStorage.getItem('flapup_last_time');
+        const savedGuidePref = localStorage.getItem('flapup_guide_pref'); 
+        const savedStartLevelPref = localStorage.getItem('flapup_start_level_pref');
 
         if (savedCredits !== null) credits = parseInt(savedCredits, 10);
         if (savedTime !== null) lastCreditTime = parseInt(savedTime, 10);
         if (savedGuidePref !== null) guideRequestedForNextGame = (savedGuidePref === 'true'); 
-        if (savedStartLevelPref !== null) selectedStartLevel = parseInt(savedStartLevelPref, 10); // NOUVEAU : Convertir en int
+        if (savedStartLevelPref !== null) selectedStartLevel = parseInt(savedStartLevelPref, 10);
     } catch (e) {
-        console.warn("Impossible d'accéder à localStorage :", e);
+        console.warn("LocalStorage non disponible :", e);
     }
 
-    // Mise à jour de l'emoji du titre au démarrage basé sur le meilleur score enregistré
     if (bestScore > 0) {
         startTitleEmoji.textContent = getPlayerEmojiForScore(bestScore);
     } else {
@@ -355,17 +353,16 @@
 
     function saveGameData() {
         try {
-            localStorage.setItem('flappy_emoji_best', bestScore);
-            localStorage.setItem('flappy_emoji_credits', credits);
-            localStorage.setItem('flappy_emoji_last_time', lastCreditTime);
-            localStorage.setItem('flappy_emoji_guide_pref', guideRequestedForNextGame); 
-            localStorage.setItem('flappy_emoji_start_level_pref', selectedStartLevel); // NOUVEAU : Sauvegarde préférence niveau de départ
+            localStorage.setItem('flapup_best', bestScore);
+            localStorage.setItem('flapup_credits', credits);
+            localStorage.setItem('flapup_last_time', lastCreditTime);
+            localStorage.setItem('flapup_guide_pref', guideRequestedForNextGame); 
+            localStorage.setItem('flapup_start_level_pref', selectedStartLevel);
         } catch (e) {
-            console.warn("Impossible de sauvegarder dans localStorage :", e);
+            console.warn("Impossible de sauvegarder :", e);
         }
     }
 
-    // NOUVEAU: Fonction pour afficher un message temporaire
     let tempMessageTimeout = null;
     function showTemporaryMessage(message, duration = 2000) {
         tempMessage.textContent = message;
@@ -376,7 +373,6 @@
         }, duration);
     }
 
-    // --- Gestion des Crédits et Timer ---
     function updateCreditsSystem() {
         const now = Date.now();
         if (credits < MAX_CREDITS) {
@@ -419,13 +415,11 @@
         startCreditDisplay.textContent = creditText;
         gameOverCreditDisplay.textContent = creditText;
 
-        // Calcul du coût de base pour une partie (sans options de niveau)
         let baseGameCost = COST_NORMAL_GAME;
         if (guideRequestedForNextGame) {
             baseGameCost += COST_GUIDE_OPTION;
         }
 
-        // Calcul du coût total de la partie avec les options actuellement sélectionnées
         let currentTotalGameCost = baseGameCost;
         if (selectedStartLevel === 30) {
             currentTotalGameCost += COST_LEVEL_30;
@@ -440,64 +434,46 @@
         startBtn.style.background = startBtn.disabled ? '#9e9e9e' : '#ff9800';
         restartBtn.style.background = restartBtn.disabled ? '#9e9e9e' : '#ff9800';
 
-        // Gérer l'état visuel et d'activation du bouton Tips
         const currentGuideBtn = (gameState === 'START') ? guideToggleBtnStart : guideToggleBtnGameover;
         currentGuideBtn.classList.toggle('btn-pressed', guideRequestedForNextGame);
-        currentGuideBtn.disabled = (credits === 0) || // Désactiver si 0 crédit
-                                   (!guideRequestedForNextGame && credits < (baseGameCost + COST_GUIDE_OPTION - COST_NORMAL_GAME)); // Désactiver si on tente d'activer sans crédits suffisants pour tips seul
+        currentGuideBtn.disabled = (credits === 0) || (!guideRequestedForNextGame && credits < (baseGameCost + COST_GUIDE_OPTION - COST_NORMAL_GAME));
         
-        // --- NOUVEAU : Logique pour les boutons de niveau de départ ---
         const currentLevel30Btn = (gameState === 'START') ? startLevel30Btn : gameoverLevel30Btn;
         const currentLevel50Btn = (gameState === 'START') ? startLevel50Btn : gameoverLevel50Btn;
 
-        // Bouton niveau 30
         if (bestScore >= 30) {
             currentLevel30Btn.style.display = 'inline-block';
             currentLevel30Btn.textContent = `Lvl 30 ${getPlayerEmojiForScore(30)} 🔙 (${COST_LEVEL_30}🥚)`;
             currentLevel30Btn.classList.toggle('btn-pressed', selectedStartLevel === 30);
             
             const costIfLevel30Selected = baseGameCost + COST_LEVEL_30;
-            // Le bouton est désactivé si:
-            // 1. On a 0 crédit
-            // 2. On n'a pas sélectionné ce niveau, ET qu'on n'a pas assez de crédits pour l'activer (coût total inclus)
-            // 3. Un autre niveau est sélectionné (pour forcer une sélection unique)
-            currentLevel30Btn.disabled = (credits === 0) || 
-                                         (!currentLevel30Btn.classList.contains('btn-pressed') && credits < costIfLevel30Selected) ||
-                                         (selectedStartLevel !== 0 && selectedStartLevel !== 30);
+            currentLevel30Btn.disabled = (credits === 0) || (!currentLevel30Btn.classList.contains('btn-pressed') && credits < costIfLevel30Selected) || (selectedStartLevel !== 0 && selectedStartLevel !== 30);
         } else {
             currentLevel30Btn.style.display = 'none';
         }
 
-        // Bouton niveau 50
         if (bestScore >= 50) {
             currentLevel50Btn.style.display = 'inline-block';
             currentLevel50Btn.textContent = `Lvl 50 ${getPlayerEmojiForScore(50)} 🔙 (${COST_LEVEL_50}🥚)`;
             currentLevel50Btn.classList.toggle('btn-pressed', selectedStartLevel === 50);
 
             const costIfLevel50Selected = baseGameCost + COST_LEVEL_50;
-            currentLevel50Btn.disabled = (credits === 0) || 
-                                         (!currentLevel50Btn.classList.contains('btn-pressed') && credits < costIfLevel50Selected) ||
-                                         (selectedStartLevel !== 0 && selectedStartLevel !== 50);
+            currentLevel50Btn.disabled = (credits === 0) || (!currentLevel50Btn.classList.contains('btn-pressed') && credits < costIfLevel50Selected) || (selectedStartLevel !== 0 && selectedStartLevel !== 50);
         } else {
             currentLevel50Btn.style.display = 'none';
         }
     }
 
-    // Gestion du toggle du guide
     function toggleGuidePreference() {
-        // Simule le coût si on active/désactive le guide
         let potentialBaseCost = COST_NORMAL_GAME;
-        if (!guideRequestedForNextGame) { // Si on est sur le point d'ACTIVER le guide
-            potentialBaseCost += COST_GUIDE_OPTION;
-        }
+        if (!guideRequestedForNextGame) potentialBaseCost += COST_GUIDE_OPTION;
 
         let potentialTotalCost = potentialBaseCost;
         if (selectedStartLevel === 30) potentialTotalCost += COST_LEVEL_30;
         if (selectedStartLevel === 50) potentialTotalCost += COST_LEVEL_50;
 
-        // Si on essaie d'activer le guide et qu'on n'a pas assez de crédits pour la configuration totale
         if (!guideRequestedForNextGame && credits < potentialTotalCost) {
-            showTemporaryMessage(`Il faut ${potentialTotalCost} 🥚 pour cette configuration (Tips inclus).`);
+            showTemporaryMessage(`Il faut ${potentialTotalCost} 🥚 pour cette configuration.`);
             return;
         }
 
@@ -506,28 +482,17 @@
         refreshUI(); 
     }
 
-    // NOUVEAU : Gestion du toggle des niveaux de départ
     function toggleStartLevel(level) {
-        let newSelectedLevel = 0; // Par défaut, pas de niveau de départ sélectionné
+        let newSelectedLevel = (selectedStartLevel === level) ? 0 : level;
 
-        // Si le niveau est déjà sélectionné, le désélectionner (revenir à 0)
-        if (selectedStartLevel === level) {
-            newSelectedLevel = 0;
-        } else {
-            newSelectedLevel = level;
-        }
-
-        // Calcul du coût potentiel avec cette nouvelle sélection de niveau
         let potentialTotalCost = COST_NORMAL_GAME;
         if (guideRequestedForNextGame) potentialTotalCost += COST_GUIDE_OPTION;
         if (newSelectedLevel === 30) potentialTotalCost += COST_LEVEL_30;
         if (newSelectedLevel === 50) potentialTotalCost += COST_LEVEL_50;
 
-        // Vérifier si le joueur peut se permettre cette sélection de niveau
-        // (Uniquement si on essaie d'ACTIVER un niveau de départ)
         if (newSelectedLevel !== 0 && credits < potentialTotalCost) {
-            showTemporaryMessage(`Il faut ${potentialTotalCost} 🥚 pour cette configuration (Niveau ${newSelectedLevel} inclus).`);
-            return; // Annuler la sélection
+            showTemporaryMessage(`Il faut ${potentialTotalCost} 🥚 pour ce niveau.`);
+            return;
         }
 
         selectedStartLevel = newSelectedLevel;
@@ -535,11 +500,8 @@
         refreshUI();
     }
 
-
-    // Ajout des écouteurs d'événements pour les boutons des options
     guideToggleBtnStart.addEventListener('click', toggleGuidePreference);
     guideToggleBtnGameover.addEventListener('click', toggleGuidePreference);
-    // NOUVEAU : Écouteurs pour les boutons de niveau
     startLevel30Btn.addEventListener('click', () => toggleStartLevel(30));
     startLevel50Btn.addEventListener('click', () => toggleStartLevel(50));
     gameoverLevel30Btn.addEventListener('click', () => toggleStartLevel(30));
@@ -555,16 +517,7 @@
     }
 
     let firstJumpOccurred = false; 
-
-    const bird = {
-        x: 60,
-        y: 280,
-        radius: 12, 
-        gravity: 0.28,
-        jump: -6.4,
-        velocity: 0,
-        emoji: '🥚'
-    };
+    const bird = { x: 60, y: 280, radius: 12, gravity: 0.28, jump: -6.4, velocity: 0, emoji: '🥚' };
 
     let pipes = [];
     const pipeWidth = 50;
@@ -595,9 +548,7 @@
         return ['🐦', '🦜', '🐓', '🦃', '🕊️', '🐉', '🦚'].includes(emoji);
     }
     
-    function shouldMirrorObstacleEmoji(emoji) {
-        return false;
-    }
+    function shouldMirrorObstacleEmoji(emoji) { return false; }
 
     function updateBirdEmoji() {
         if (score > 0 && score % 10 === 0) { 
@@ -617,9 +568,9 @@
         bird.y = 280;
         bird.velocity = 0;
         pipes = [];
-        score = 0; // Réinitialise le score à 0
+        score = 0;
         firstJumpOccurred = false;
-        bird.emoji = '🥚'; // Réinitialise l'emoji de l'oiseau à l'œuf par défaut
+        bird.emoji = '🥚';
         scoreDisplay.textContent = score + ' ' + bird.emoji;
         frameCount = 0;
     }
@@ -657,38 +608,30 @@
 
     function startGame(e) {
         if (e) e.stopPropagation(); 
-
         updateCreditsSystem(); 
 
-        // Calcul du coût total de la partie avec toutes les options choisies
         let gameCost = COST_NORMAL_GAME;
         if (guideRequestedForNextGame) gameCost += COST_GUIDE_OPTION;
         if (selectedStartLevel === 30) gameCost += COST_LEVEL_30;
         if (selectedStartLevel === 50) gameCost += COST_LEVEL_50;
 
         if (credits < gameCost) {
-            let message = "Vous n'avez pas assez de crédits pour lancer la partie.";
-            message += ` Coût actuel : ${gameCost} 🥚.`;
-            showTemporaryMessage(message);
+            showTemporaryMessage(`Pas assez de crédits (${gameCost} 🥚 requis).`);
             refreshUI(); 
             return;
         }
 
-        // Déduction des crédits
         credits -= gameCost;
         saveGameData();
-
         showOptimalPathGuide = guideRequestedForNextGame; 
         
-        // Réinitialise le jeu à l'état par défaut (score 0, œuf)
         resetGame(); 
 
-        // Applique les modifications de démarrage si un niveau de départ a été choisi
         if (selectedStartLevel > 0) {
-            score = selectedStartLevel; // Définit le score initial
-            bird.emoji = getPlayerEmojiForScore(selectedStartLevel); // Définit l'emoji de l'oiseau initial
+            score = selectedStartLevel;
+            bird.emoji = getPlayerEmojiForScore(selectedStartLevel);
             scoreDisplay.textContent = score + ' ' + bird.emoji;
-            firstJumpOccurred = true; // Simule un premier saut pour que l'emoji du joueur s'affiche correctement
+            firstJumpOccurred = true;
         }
 
         gameState = 'PLAYING';
@@ -724,7 +667,6 @@
         if (gameState !== 'PLAYING') return;
 
         frameCount++;
-
         bird.velocity += bird.gravity;
         bird.y += bird.velocity;
 
@@ -776,20 +718,12 @@
         ctx.rect(x, startY, pipeWidth, height);
         ctx.clip();
         
-        if (shouldMirrorObstacleEmoji(emoji)) {
-            ctx.translate(x + pipeWidth / 2, startY + height / 2);
-            ctx.scale(-1, 1);
-            ctx.translate(-(x + pipeWidth / 2), -(startY + height / 2));
-        }
-
         for (let i = 0; i < count; i++) {
             let y = startY + (i * emojiHeight) + 18;
-            
             ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
             ctx.shadowBlur = 4;
             ctx.shadowOffsetX = 1;
             ctx.shadowOffsetY = 2;
-
             ctx.fillText(emoji, x + pipeWidth / 2, y);
         }
         ctx.restore();
@@ -808,7 +742,7 @@
             ctx.restore();
         });
 
-        const currentObstacleEmoji = getObstacleEmojiForScore(score); // L'emoji d'obstacle dépend du score actuel
+        const currentObstacleEmoji = getObstacleEmojiForScore(score);
         pipes.forEach(p => {
             drawPipeSection(p.x, 0, p.top, currentObstacleEmoji);
             drawPipeSection(p.x, canvas.height - p.bottom, p.bottom, currentObstacleEmoji);
@@ -840,7 +774,6 @@
         ctx.fillText(bird.emoji, 0, 0);
         ctx.restore();
 
-        // Affichage du guide de trajectoire
         if (gameState === 'PLAYING' && showOptimalPathGuide) {
             const nextPipe = pipes.find(p => p.x + pipeWidth > bird.x);
             if (nextPipe) {
@@ -867,7 +800,6 @@
 
         finalScoreValueDisplay.textContent = score;
         finalScoreEmojiDisplay.textContent = getPlayerEmojiForScore(score);
-        
         bestScoreValueDisplay.textContent = bestScore;
         bestScoreEmojiDisplay.textContent = getPlayerEmojiForScore(bestScore);
         
@@ -875,18 +807,13 @@
         gameOverScreen.style.display = 'flex';
     }
 
-    function loop() {
-        update();
-        draw();
-        if (gameState === 'START' || gameState === 'GAMEOVER') {
-            refreshUI();
-        }
-        requestAnimationFrame(loop);
-    }
+---
 
-    resetGame();
-    refreshUI();
-    loop();
-</script>
-</body>
-</html>
+### Comment créer un "bookmark" (signet) cliquable sur votre navigateur :
+
+Si vous souhaitez enregistrer facilement le lien de votre jeu dans vos favoris/bookmarks :
+
+1. Ouvrez votre page web sur votre navigateur (Safari ou Chrome).
+2. Appuyez sur le bouton de partage ou de menu du navigateur (généralement l'icône de partage sur iOS ou les trois petits points).
+3. Sélectionnez **"Ajouter aux favoris"** ou **"Ajouter au signet"**.
+4. Nommez-le **`FlapUp! 🐣`** et enregistrez-le. Il apparaîtra directement dans votre barre ou liste de favoris pour un accès immédiat.
