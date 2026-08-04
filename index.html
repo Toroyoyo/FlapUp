@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <title>FlapUp! - 🍳 Flappy Emoji Game</title>
     <style>
         * {
@@ -53,6 +53,7 @@
             color: white;
             text-align: center;
             padding: 20px;
+            z-index: 30;
         }
         .overlay h1 {
             font-size: 36px;
@@ -86,13 +87,15 @@
             background: #ff9800;
             color: white;
             border: none;
-            padding: 12px 24px;
-            font-size: 20px;
+            padding: 14px 28px;
+            font-size: 22px;
             font-weight: bold;
             border-radius: 30px;
             cursor: pointer;
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
             transition: transform 0.1s;
+            pointer-events: auto;
+            touch-action: manipulation;
         }
         .btn:active {
             transform: scale(0.95);
@@ -107,21 +110,20 @@
             background: rgba(139, 195, 74, 0.2);
             color: rgba(255, 255, 255, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 4px 10px;
+            padding: 6px 12px;
             font-size: 14px;
             font-weight: bold;
             border-radius: 10px;
             cursor: pointer;
-            box-shadow: none;
             transition: all 0.1s ease;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
             white-space: nowrap;
+            pointer-events: auto;
         }
         .btn-tips-minimal.btn-pressed {
             background: #689F38;
             color: white;
             box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
-            transform: translateY(0.5px);
             border-color: #689F38;
         }
         .btn-tips-minimal:disabled {
@@ -129,8 +131,6 @@
             color: rgba(255, 255, 255, 0.4);
             border-color: rgba(255, 255, 255, 0.1);
             cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
         }
         #score-display {
             position: absolute;
@@ -167,8 +167,6 @@
             align-items: center;
             gap: 10px;
             margin-top: 15px;
-            padding: 0;
-            border-radius: 20px;
             color: white;
             font-weight: bold;
         }
@@ -181,17 +179,19 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(255, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             color: white;
             padding: 15px 25px;
             border-radius: 10px;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-            z-index: 20;
+            z-index: 40;
             opacity: 0;
             transition: opacity 0.3s ease;
             pointer-events: none;
+            text-align: center;
+            border: 2px solid #ff9800;
         }
         #temp-message.show {
             opacity: 1;
@@ -208,9 +208,6 @@
             color: #ffe082;
             text-decoration: none;
             font-weight: bold;
-        }
-        footer a:hover {
-            text-decoration: underline;
         }
     </style>
 </head>
@@ -238,7 +235,7 @@
         </div>
 
         <p style="margin-bottom: 15px; margin-top: 15px;">Touchez l'écran pour voler et éviter les obstacles !</p>
-        <button id="start-btn" class="btn" onclick="startGame(event)">JOUER</button>
+        <button id="start-btn" class="btn">JOUER</button>
     </div>
 
     <div id="game-over-screen" class="overlay" style="display: none;">
@@ -261,12 +258,12 @@
             </div>
         </div>
 
-        <button id="restart-btn" class="btn" onclick="startGame(event)">REJOUER</button>
+        <button id="restart-btn" class="btn">REJOUER</button>
     </div>
 </div>
 
 <footer>
-    © 2026 FlapUp! - Tous droits réservés[span_1](start_span)[span_1](end_span). <a href="https://ko-fi.com/VOTRE_PSEUDO" target="_blank">☕ Recharger (1€)</a>
+    © 2026 FlapUp! - Tous droits réservés[span_0](start_span)[span_0](end_span). <a href="https://ko-fi.com/VOTRE_PSEUDO" target="_blank">☕ Recharger (1€)</a>
 </footer>
 
 <script>
@@ -364,7 +361,7 @@
     }
 
     let tempMessageTimeout = null;
-    function showTemporaryMessage(message, duration = 2000) {
+    function showTemporaryMessage(message, duration = 2500) {
         tempMessage.textContent = message;
         tempMessage.classList.add('show');
         if (tempMessageTimeout) clearTimeout(tempMessageTimeout);
@@ -436,7 +433,7 @@
 
         const currentGuideBtn = (gameState === 'START') ? guideToggleBtnStart : guideToggleBtnGameover;
         currentGuideBtn.classList.toggle('btn-pressed', guideRequestedForNextGame);
-        currentGuideBtn.disabled = (credits === 0) || (!guideRequestedForNextGame && credits < (baseGameCost + COST_GUIDE_OPTION - COST_NORMAL_GAME));
+        currentGuideBtn.disabled = (credits === 0);
         
         const currentLevel30Btn = (gameState === 'START') ? startLevel30Btn : gameoverLevel30Btn;
         const currentLevel50Btn = (gameState === 'START') ? startLevel50Btn : gameoverLevel50Btn;
@@ -445,9 +442,7 @@
             currentLevel30Btn.style.display = 'inline-block';
             currentLevel30Btn.textContent = `Lvl 30 ${getPlayerEmojiForScore(30)} 🔙 (${COST_LEVEL_30}🥚)`;
             currentLevel30Btn.classList.toggle('btn-pressed', selectedStartLevel === 30);
-            
-            const costIfLevel30Selected = baseGameCost + COST_LEVEL_30;
-            currentLevel30Btn.disabled = (credits === 0) || (!currentLevel30Btn.classList.contains('btn-pressed') && credits < costIfLevel30Selected) || (selectedStartLevel !== 0 && selectedStartLevel !== 30);
+            currentLevel30Btn.disabled = (credits === 0);
         } else {
             currentLevel30Btn.style.display = 'none';
         }
@@ -456,56 +451,30 @@
             currentLevel50Btn.style.display = 'inline-block';
             currentLevel50Btn.textContent = `Lvl 50 ${getPlayerEmojiForScore(50)} 🔙 (${COST_LEVEL_50}🥚)`;
             currentLevel50Btn.classList.toggle('btn-pressed', selectedStartLevel === 50);
-
-            const costIfLevel50Selected = baseGameCost + COST_LEVEL_50;
-            currentLevel50Btn.disabled = (credits === 0) || (!currentLevel50Btn.classList.contains('btn-pressed') && credits < costIfLevel50Selected) || (selectedStartLevel !== 0 && selectedStartLevel !== 50);
+            currentLevel50Btn.disabled = (credits === 0);
         } else {
             currentLevel50Btn.style.display = 'none';
         }
     }
 
     function toggleGuidePreference() {
-        let potentialBaseCost = COST_NORMAL_GAME;
-        if (!guideRequestedForNextGame) potentialBaseCost += COST_GUIDE_OPTION;
-
-        let potentialTotalCost = potentialBaseCost;
-        if (selectedStartLevel === 30) potentialTotalCost += COST_LEVEL_30;
-        if (selectedStartLevel === 50) potentialTotalCost += COST_LEVEL_50;
-
-        if (!guideRequestedForNextGame && credits < potentialTotalCost) {
-            showTemporaryMessage(`Il faut ${potentialTotalCost} 🥚 pour cette configuration.`);
-            return;
-        }
-
         guideRequestedForNextGame = !guideRequestedForNextGame;
         saveGameData(); 
         refreshUI(); 
     }
 
     function toggleStartLevel(level) {
-        let newSelectedLevel = (selectedStartLevel === level) ? 0 : level;
-
-        let potentialTotalCost = COST_NORMAL_GAME;
-        if (guideRequestedForNextGame) potentialTotalCost += COST_GUIDE_OPTION;
-        if (newSelectedLevel === 30) potentialTotalCost += COST_LEVEL_30;
-        if (newSelectedLevel === 50) potentialTotalCost += COST_LEVEL_50;
-
-        if (newSelectedLevel !== 0 && credits < potentialTotalCost) {
-            showTemporaryMessage(`Il faut ${potentialTotalCost} 🥚 pour ce niveau.`);
-            return;
-        }
-
-        selectedStartLevel = newSelectedLevel;
+        selectedStartLevel = (selectedStartLevel === level) ? 0 : level;
         saveGameData();
         refreshUI();
     }
 
-    guideToggleBtnStart.addEventListener('click', toggleGuidePreference);
-    guideToggleBtnGameover.addEventListener('click', toggleGuidePreference);
-    startLevel30Btn.addEventListener('click', () => toggleStartLevel(30));
-    startLevel50Btn.addEventListener('click', () => toggleStartLevel(50));
-    gameoverLevel30Btn.addEventListener('click', () => toggleStartLevel(30));
-    gameoverLevel50Btn.addEventListener('click', () => toggleStartLevel(50));
+    guideToggleBtnStart.addEventListener('click', (e) => { e.stopPropagation(); toggleGuidePreference(); });
+    guideToggleBtnGameover.addEventListener('click', (e) => { e.stopPropagation(); toggleGuidePreference(); });
+    startLevel30Btn.addEventListener('click', (e) => { e.stopPropagation(); toggleStartLevel(30); });
+    startLevel50Btn.addEventListener('click', (e) => { e.stopPropagation(); toggleStartLevel(50); });
+    gameoverLevel30Btn.addEventListener('click', (e) => { e.stopPropagation(); toggleStartLevel(30); });
+    gameoverLevel50Btn.addEventListener('click', (e) => { e.stopPropagation(); toggleStartLevel(50); });
 
     let popupTimeout = null;
     function showCreditPopup() {
@@ -547,8 +516,6 @@
     function shouldMirrorPlayerEmoji(emoji) {
         return ['🐦', '🦜', '🐓', '🦃', '🕊️', '🐉', '🦚'].includes(emoji);
     }
-    
-    function shouldMirrorObstacleEmoji(emoji) { return false; }
 
     function updateBirdEmoji() {
         if (score > 0 && score % 10 === 0) { 
@@ -585,29 +552,34 @@
         }
     }
 
-    function handleInput(e) {
-        if (e.target.tagName !== 'BUTTON') {
+    container.addEventListener('touchstart', (e) => {
+        if (gameState === 'PLAYING') {
             if (e.cancelable) e.preventDefault();
             jump();
         }
-    }
+    }, { passive: false });
 
-    container.addEventListener('touchstart', handleInput, { passive: false });
-    container.addEventListener('mousedown', handleInput);
+    container.addEventListener('mousedown', () => {
+        if (gameState === 'PLAYING') {
+            jump();
+        }
+    });
 
     window.addEventListener('keydown', (e) => {
         if (e.code === 'Space') {
             e.preventDefault();
-            if (gameState === 'START' || gameState === 'GAMEOVER') {
-                startGame(); 
-            } else {
+            if (gameState === 'PLAYING') {
                 jump();
             }
         }
     });
 
     function startGame(e) {
-        if (e) e.stopPropagation(); 
+        if (e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        
         updateCreditsSystem(); 
 
         let gameCost = COST_NORMAL_GAME;
@@ -616,7 +588,7 @@
         if (selectedStartLevel === 50) gameCost += COST_LEVEL_50;
 
         if (credits < gameCost) {
-            showTemporaryMessage(`Pas assez de crédits (${gameCost} 🥚 requis).`);
+            showTemporaryMessage(`Crédits insuffisants ! (${gameCost} 🥚 requis, vous en avez ${credits}).`);
             refreshUI(); 
             return;
         }
@@ -639,6 +611,13 @@
         gameOverScreen.style.display = 'none';
         tempMessage.classList.remove('show'); 
     }
+
+    // Association universelle tactile et clic pour les boutons de lancement
+    startBtn.addEventListener('click', startGame);
+    startBtn.addEventListener('touchend', (e) => { e.preventDefault(); startGame(e); });
+
+    restartBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('touchend', (e) => { e.preventDefault(); startGame(e); });
 
     function spawnPipe() {
         const minHeight = 50;
@@ -807,13 +786,14 @@
         gameOverScreen.style.display = 'flex';
     }
 
----
+    function loop() {
+        update();
+        draw();
+        requestAnimationFrame(loop);
+    }
 
-### Comment créer un "bookmark" (signet) cliquable sur votre navigateur :
-
-Si vous souhaitez enregistrer facilement le lien de votre jeu dans vos favoris/bookmarks :
-
-1. Ouvrez votre page web sur votre navigateur (Safari ou Chrome).
-2. Appuyez sur le bouton de partage ou de menu du navigateur (généralement l'icône de partage sur iOS ou les trois petits points).
-3. Sélectionnez **"Ajouter aux favoris"** ou **"Ajouter au signet"**.
-4. Nommez-le **`FlapUp! 🐣`** et enregistrez-le. Il apparaîtra directement dans votre barre ou liste de favoris pour un accès immédiat.
+    refreshUI();
+    loop();
+</script>
+</body>
+</html>
