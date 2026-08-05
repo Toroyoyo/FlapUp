@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>FlapUp! - 🍳 Flappy Emoji Game</title>
+    <title>FlapUp!</title>
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐣</text></svg>">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐣</text></svg>">
     
@@ -538,7 +538,7 @@
         saveGameData();
 
         if (!supabaseClient) {
-            showTemporaryMessage("Supabase non relié !");
+            showTemporaryMessage("Réessayer plus tard...");
             return;
         }
 
@@ -569,7 +569,7 @@
     gameoverLevel50Btn.addEventListener('click', (e) => { e.stopPropagation(); selectedStartLevel = selectedStartLevel === 50 ? 0 : 50; saveGameData(); refreshUI(); });
 
     let firstJumpOccurred = false; 
-    const bird = { x: 60, y: 280, radius: 12, gravity: 0.28, jump: -6.4, velocity: 0, emoji: '🥚' };
+    const bird = { x: 60, y: 280, radius: 15, gravity: 0.28, jump: -6.4, velocity: 0, emoji: '🥚' };
     let pipes = [];
     const pipeWidth = 50;
     const pipeGap = 165;
