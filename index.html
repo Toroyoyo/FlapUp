@@ -165,15 +165,21 @@
         }
         #name-input-container {
             display: flex;
+            flex-direction: column;
             gap: 5px;
             margin: 5px 0;
+            align-items: center;
         }
-        #player-name-input {
+        .input-row {
+            display: flex;
+            gap: 5px;
+        }
+        #player-name-input, #group-key-input {
             padding: 6px;
             border-radius: 8px;
             border: none;
-            font-size: 14px;
-            width: 150px;
+            font-size: 13px;
+            width: 120px;
             text-align: center;
         }
         #score-display {
@@ -280,8 +286,11 @@
         
         <!-- Formulaire d'envoi de score en ligne -->
         <div id="name-input-container">
-            <input type="text" id="player-name-input" placeholder="Pseudo" maxlength="12">
-            <button id="submit-score-btn" class="btn-tips-minimal" style="background:#ff9800; color:white;">Envoyer</button>
+            <div class="input-row">
+                <input type="text" id="player-name-input" placeholder="Pseudo" maxlength="12">
+                <input type="text" id="group-key-input" placeholder="Groupe (Opt)" maxlength="12">
+            </div>
+            <button id="submit-score-btn" class="btn-tips-minimal" style="background:#ff9800; color:white; width:100%;">Envoyer au classement</button>
         </div>
 
         <!-- Tableau des meilleurs scores mondiaux -->
@@ -312,12 +321,12 @@
 
 <script>
     // --- CONFIGURATION SUPABASE ---
-    const SUPABASE_URL = 'VOTRE_URL_SUPABASE';
-    const SUPABASE_ANON_KEY = 'VOTRE_CLE_ANON_SUPABASE';
+    const SUPABASE_URL = 'https://cxrmrqyyypiwahltquqa.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_-ZczxGU2bSITlQ57_fgm6g_TXIMombN';
     
     let supabaseClient = null;
     try {
-        if (SUPABASE_URL !== 'VOTRE_URL_SUPABASE') {
+        if (SUPABASE_URL && SUPABASE_ANON_KEY) {
             supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         }
     } catch(e) {
@@ -343,6 +352,7 @@
     const startTitleEmoji = document.getElementById('start-title-emoji');
     const creditPopup = document.getElementById('credit-popup');
     const playerNameInput = document.getElementById('player-name-input');
+    const groupKeyInput = document.getElementById('group-key-input');
     const submitScoreBtn = document.getElementById('submit-score-btn');
     const leaderboardList = document.getElementById('leaderboard-list');
 
@@ -365,12 +375,17 @@
     let selectedStartLevel = 0;
 
     let playerName = localStorage.getItem('flapup_player_name') || '';
-    if (playerName) {
-        playerNameInput.value = playerName;
-    }
+    let groupKey = localStorage.getItem('flapup_group_key') || '';
+    if (playerName) playerNameInput.value = playerName;
+    if (groupKey) groupKeyInput.value = groupKey;
+
     playerNameInput.addEventListener('input', () => {
         playerName = playerNameInput.value.trim();
         localStorage.setItem('flapup_player_name', playerName);
+    });
+    groupKeyInput.addEventListener('input', () => {
+        groupKey = groupKeyInput.value.trim();
+        localStorage.setItem('flapup_group_key', groupKey);
     });
 
     const MAX_CREDITS = 5;
@@ -421,6 +436,7 @@
             localStorage.setItem('flapup_guide_pref', guideRequestedForNextGame); 
             localStorage.setItem('flapup_start_level_pref', selectedStartLevel);
             localStorage.setItem('flapup_player_name', playerNameInput.value.trim());
+            localStorage.setItem('flapup_group_key', groupKeyInput.value.trim());
         } catch (e) {
             console.warn("Sauvegarde impossible :", e);
         }
@@ -504,9 +520,16 @@
             return;
         }
         try {
-            const { data, error } = await supabaseClient
+            let query = supabaseClient
                 .from('leaderboard')
-                .select('name, score, emoji')
+                .select('name, score, emoji');
+
+            let currentGroup = groupKeyInput.value.trim();
+            if (currentGroup) {
+                query = query.eq('group_key', currentGroup);
+            }
+
+            const { data, error } = await query
                 .order('score', { ascending: false })
                 .limit(5);
 
@@ -530,11 +553,13 @@
 
     submitScoreBtn.addEventListener('click', async () => {
         let name = playerNameInput.value.trim();
+        let group = groupKeyInput.value.trim() || 'All';
         if (!name) {
-            showTemporaryMessage("Entrez un pseudo !");
+            showTemporaryMessage("Entrez un pseudo unique !");
             return;
         }
         playerName = name;
+        groupKey = group === 'All' ? '' : group;
         saveGameData();
 
         if (!supabaseClient) {
@@ -548,16 +573,24 @@
         try {
             const { error } = await supabaseClient
                 .from('leaderboard')
-                .insert([{ name: playerName, score: score, emoji: getPlayerEmojiForScore(score) }]);
+                .upsert({ 
+                    name: playerName, 
+                    score: bestScore, 
+                    emoji: getPlayerEmojiForScore(bestScore),
+                    credit: credits,
+                    group_key: group,
+                    updated_at: new Date().toISOString()
+                }, { onConflict: 'name' })
+                .select(); // Force le retour de la ligne pour éviter l'erreur success: no rows returned
 
             if (error) throw error;
-            showTemporaryMessage("Score envoyé au classement !");
+            showTemporaryMessage("Données enregistrées !");
             fetchLeaderboard();
         } catch (err) {
             showTemporaryMessage("Erreur lors de l'envoi");
         } finally {
             submitScoreBtn.disabled = false;
-            submitScoreBtn.textContent = "Envoyer";
+            submitScoreBtn.textContent = "Envoyer au classement";
         }
     });
 
