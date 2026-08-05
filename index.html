@@ -280,7 +280,7 @@
         
         <!-- Formulaire d'envoi de score en ligne -->
         <div id="name-input-container">
-            <input type="text" id="player-name-input" placeholder="Votre pseudo" maxlength="12">
+            <input type="text" id="player-name-input" placeholder="Pseudo" maxlength="12">
             <button id="submit-score-btn" class="btn-tips-minimal" style="background:#ff9800; color:white;">Envoyer</button>
         </div>
 
@@ -307,7 +307,7 @@
 </div>
 
 <footer>
-    © 2026 FlapUp! - <a href="https://github.com/toroyoyo/FlapUp" target="_blank">GitHub</a>
+    © 2026 FlapUp! - <a href="https://github.com/toroyoyo/FlapUp" target="_blank">ɥτ GitHub</a>
 </footer>
 
 <script>
@@ -500,7 +500,7 @@
 
     async function fetchLeaderboard() {
         if (!supabaseClient) {
-            leaderboardList.innerHTML = '<div style="font-size:11px; color:#ccc;">Non configuré</div>';
+            leaderboardList.innerHTML = '<div style="font-size:8px; color:#ccc;">Classement indisponible</div>';
             return;
         }
         try {
