@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>FlapUp!</title>
+    <title>FlapUp! - 🍳 Flappy Emoji Game</title>
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐣</text></svg>">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐣</text></svg>">
     
@@ -364,7 +364,6 @@
     let guideRequestedForNextGame = false;
     let selectedStartLevel = 0;
 
-    // --- GESTION AUTOMATIQUE DU PSEUDO DANS LE LOCALSTORAGE ---
     let playerName = localStorage.getItem('flapup_player_name') || '';
     if (playerName) {
         playerNameInput.value = playerName;
@@ -499,7 +498,6 @@
         }
     }
 
-    // --- FONCTION CLASSEMENT SUPABASE ---
     async function fetchLeaderboard() {
         if (!supabaseClient) {
             leaderboardList.innerHTML = '<div style="font-size:11px; color:#ccc;">Non configuré</div>';
@@ -563,7 +561,6 @@
         }
     });
 
-    // Contrôles UI
     guideToggleBtnStart.addEventListener('click', (e) => { e.stopPropagation(); guideRequestedForNextGame = !guideRequestedForNextGame; saveGameData(); refreshUI(); });
     guideToggleBtnGameover.addEventListener('click', (e) => { e.stopPropagation(); guideRequestedForNextGame = !guideRequestedForNextGame; saveGameData(); refreshUI(); });
     startLevel30Btn.addEventListener('click', (e) => { e.stopPropagation(); selectedStartLevel = selectedStartLevel === 30 ? 0 : 30; saveGameData(); refreshUI(); });
@@ -572,15 +569,15 @@
     gameoverLevel50Btn.addEventListener('click', (e) => { e.stopPropagation(); selectedStartLevel = selectedStartLevel === 50 ? 0 : 50; saveGameData(); refreshUI(); });
 
     let firstJumpOccurred = false; 
-    const bird = { x: 60, y: 280, radius: 15, gravity: 0.28, jump: -6.4, velocity: 0, emoji: '🥚' };
+    const bird = { x: 60, y: 280, radius: 12, gravity: 0.28, jump: -6.4, velocity: 0, emoji: '🥚' };
     let pipes = [];
     const pipeWidth = 50;
     const pipeGap = 165;
     const pipeSpeed = 2.0;
     let frameCount = 0;
     let clouds = [
-        { x: 50, y: 100, speed: 0.5, size: 30, opacity: 0.4 },
-        { x: 220, y: 180, speed: 0.3, size: 24, opacity: 0.3 }
+        { x: 50, y: 100, speed: 0.5, size: 30 },
+        { x: 220, y: 180, speed: 0.3, size: 24 }
     ];
 
     function getObstacleEmojiForScore(s) {
@@ -693,7 +690,7 @@
     }
 
     function drawPipeSection(x, startY, height, emoji) {
-        ctx.font = '32px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
+        ctx.font = '32px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         let count = Math.ceil(height / 35);
@@ -702,6 +699,7 @@
         ctx.rect(x, startY, pipeWidth, height);
         ctx.clip();
         for (let i = 0; i < count; i++) {
+            ctx.globalAlpha = 1.0; // Force l'opacité complète
             ctx.fillText(emoji, x + pipeWidth / 2, startY + (i * 35) + 18);
         }
         ctx.restore();
@@ -709,9 +707,11 @@
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Nuages opaques / nets
         clouds.forEach(c => { 
-            ctx.globalAlpha = c.opacity; 
-            ctx.font = `${c.size}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`; 
+            ctx.globalAlpha = 1.0; 
+            ctx.font = `${c.size}px sans-serif`; 
             ctx.fillText('☁️', c.x, c.y); 
         });
         
@@ -728,9 +728,10 @@
         ctx.translate(bird.x, bird.y);
         ctx.rotate(Math.min(Math.max(bird.velocity * 0.04, -0.4), 0.6));
         if (shouldMirrorPlayerEmoji(bird.emoji)) { ctx.scale(-1, 1); ctx.translate(-36, 0); }
-        ctx.font = '36px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif'; 
+        ctx.font = '36px sans-serif'; 
         ctx.textAlign = 'center'; 
         ctx.textBaseline = 'middle';
+        ctx.globalAlpha = 1.0; // Force l'opacité complète du joueur
         ctx.fillText(bird.emoji, 0, 0);
         ctx.restore();
     }
