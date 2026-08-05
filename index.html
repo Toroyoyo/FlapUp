@@ -286,7 +286,7 @@
 
         <!-- Tableau des meilleurs scores mondiaux -->
         <div id="leaderboard-box">
-            <h3>🏆 Top Mondial</h3>
+            <h3>🏆 Top Flapper</h3>
             <div id="leaderboard-list">Chargement...</div>
         </div>
 
@@ -453,9 +453,9 @@
         let elapsed = Date.now() - lastCreditTime;
         let remainingMinutes = Math.ceil((REFILL_TIME_MS - elapsed) / (60 * 1000));
         if (credits > 0) {
-            return credits < MAX_CREDITS ? `🪺 ${credits} (+1 ds ${remainingMinutes}m)` : `🪺 ${credits}`;
+            return credits < MAX_CREDITS ? `🪺 ${credits} (+1 ⌛ ${remainingMinutes}m)` : `🪺 ${credits}`;
         } else {
-            return `🪹 0 (+1 ds ${remainingMinutes}m)`;
+            return `🪹 0 (+1 ⌛ ${remainingMinutes}m)`;
         }
     }
 
@@ -727,8 +727,8 @@
                 ctx.lineWidth = 3;
                 ctx.setLineDash([4, 4]);
                 ctx.beginPath();
-                ctx.moveTo(p.x + pipeWidth, targetCenterY);
-                ctx.lineTo(p.x + pipeWidth + 60, targetCenterY);
+                ctx.moveTo(p.x, targetCenterY);
+                ctx.lineTo(p.x + pipeWidth, targetCenterY);
                 ctx.stroke();
                 ctx.restore();
             }
