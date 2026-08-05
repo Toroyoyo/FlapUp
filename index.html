@@ -453,7 +453,7 @@
         let elapsed = Date.now() - lastCreditTime;
         let remainingMinutes = Math.ceil((REFILL_TIME_MS - elapsed) / (60 * 1000));
         if (credits > 0) {
-            return credits < MAX_CREDITS ? `🪺 ${credits} (+1 ds ${remainingMinutes}m)` : `🪺 ${credits}`;
+            return credits < MAX_CREDITS ? `🪺 ${credits} (+1⌛${remainingMinutes}m)` : `🪺 ${credits}`;
         } else {
             return `🪹 0 (+1 ds ${remainingMinutes}m)`;
         }
