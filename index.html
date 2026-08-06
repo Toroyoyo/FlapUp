@@ -281,7 +281,7 @@
             Score : <span id="final-score-value">0</span> <span id="final-score-emoji"></span>
         </div>
         <div class="score-line">
-            Record Local : <span id="best-score-value">0</span> <span id="best-score-emoji"></span>
+            Score Max : <span id="best-score-value">0</span> <span id="best-score-emoji"></span>
         </div>
         
         <!-- Formulaire d'envoi de score en ligne -->
@@ -396,15 +396,17 @@
     const COST_LEVEL_50 = 20;
 
     function getPlayerEmojiForScore(s) {
-        if (s >= 120) return '🐉';
-        else if (s >= 90) return '🐦‍🔥';
+        if (s >= 150) return '🐲';
+        else if (s >= 120) return '🐉';
+        else if (s >= 100) return '🐦‍🔥';
+        else if (s >= 90) return '🦅';
         else if (s >= 80) return '🦚';
         else if (s >= 70) return '🕊️';
         else if (s >= 60) return '🦃';
         else if (s >= 50) return '🐓';
-        else if (s >= 40) return '🐦‍⬛';
-        else if (s >= 30) return '🦜';
-        else if (s >= 20) return '🐦';
+        else if (s >= 40) return '🪿';
+        else if (s >= 30) return '🐦‍⬛';
+        else if (s >= 20) return '🦜';
         else if (s >= 10) return '🐥';
         else return '🐣'; 
     }
@@ -615,16 +617,20 @@
 
     function getObstacleEmojiForScore(s) {
         if (s >= 100) return '🔥';
-        else if (s >= 80) return '⛓️';
-        else if (s >= 70) return '🚧';
-        else if (s >= 50) return '🛢️';
-        else if (s >= 30) return '🪨';
-        else if (s >= 10) return '🌵';
-        else return '🪵';
+        else if (s >= 90) return '☄️';
+        else if (s >= 80) return '🌪️-';
+        else if (s >= 70) return '🍀';
+        else if (s >= 60) return '🌸';
+        else if (s >= 50) return '🎋';
+        else if (s >= 40) return '🪨';
+        else if (s >= 30) return '🌵';
+        else if (s >= 20) return '🪾';
+        else if (s >= 10) return '🪵';
+        else return '🌿';
     }
 
     function shouldMirrorPlayerEmoji(emoji) {
-        return ['🐦', '🦜', '🐓', '🦃', '🕊️', '🐉', '🦚'].includes(emoji);
+        return ['🪿','🐦‍⬛','🐲', '🦜', '🐓', '🦃', '🕊️', '🐉', '🦚'].includes(emoji);
     }
 
     function updateBirdEmoji() {
