@@ -86,6 +86,11 @@
             padding: 5px 12px;
             border-radius: 20px;
         }
+        /* NOUVEAU STYLE: pour les emojis de crédits */
+        .credit-info .credit-emoji-lg {
+            font-size: 1.5em; /* Rend l'emoji 1.5 fois plus grand que son conteneur parent */
+            vertical-align: -0.1em; /* Ajustement vertical pour un meilleur alignement */
+        }
         .btn {
             background: #ff9800;
             color: white;
@@ -153,6 +158,7 @@
             font-size: 14px;
             margin-bottom: 4px;
             color: #ffe082;
+            cursor: pointer; /* Rendre le titre cliquable */
         }
         .lb-row {
             display: flex;
@@ -177,7 +183,6 @@
             justify-content: center; /* Centre les inputs */
         }
         #player-name-input, #group-key-input {
-            /* STYLES MODIFIÉS ICI */
             background: rgba(0, 0, 0, 0.3); /* Fond sombre semi-transparent */
             color: white; /* Texte blanc */
             border: 1px solid rgba(255, 255, 255, 0.2); /* Bordure subtile */
@@ -285,7 +290,7 @@
 
     <!-- ÉCRAN DE GAME OVER -->
     <div id="game-over-screen" class="overlay" style="display: none;">
-        <h1>🍗 GAME OVER</h1>
+        <h1><span id="game-over-title-emoji">🍗</span> GAME OVER</h1>
         <div class="score-line">
             Score : <span id="final-score-value">0</span> <span id="final-score-emoji"></span>
         </div>
@@ -299,12 +304,12 @@
                 <input type="text" id="player-name-input" placeholder="Pseudo" maxlength="12">
                 <input type="text" id="group-key-input" placeholder="Groupe (Opt)" maxlength="12">
             </div>
-            <button id="submit-score-btn" class="btn-tips-minimal" style="background:#ff9800; color:white; width:100%;">Envoyer au classement</button>
+            <button id="submit-score-btn" class="btn-tips-minimal" style="background:#ff9800; color:white; width:100%; margin-top: 5px;">Envoyer au classement</button>
         </div>
 
         <!-- Tableau des meilleurs scores mondiaux -->
         <div id="leaderboard-box">
-            <h3>🏆 Top Flapper</h3>
+            <h3 id="leaderboard-title">🏆 Top Flapper ►</h3> <!-- ID ajouté et rendu cliquable via CSS -->
             <div id="leaderboard-list">Chargement...</div>
         </div>
 
@@ -355,7 +360,7 @@
     const bestScoreValueDisplay = document.getElementById('best-score-value');
     const bestScoreEmojiDisplay = document.getElementById('best-score-emoji');
     const startCreditDisplay = document.getElementById('start-credit-display');
-    const gameOverCreditDisplay = document.getElementById('gameover-credit-display');
+    const gameOverCreditDisplay = document.getElementById('gameover-credit-display'); 
     const startBtn = document.getElementById('start-btn');
     const restartBtn = document.getElementById('restart-btn');
     const startTitleEmoji = document.getElementById('start-title-emoji');
@@ -373,6 +378,8 @@
     const gameoverLevel50Btn = document.getElementById('gameover-level-50-btn');
     const tempMessage = document.getElementById('temp-message');
     const container = document.getElementById('game-container');
+    const leaderboardTitle = document.getElementById('leaderboard-title');
+    const gameOverTitleEmoji = document.getElementById('game-over-title-emoji'); // NOUVEAU: Référence à l'emoji du titre GAME OVER
 
     let gameState = 'START';
     let score = 0;
@@ -382,6 +389,7 @@
     let showOptimalPathGuide = false;
     let guideRequestedForNextGame = false;
     let selectedStartLevel = 0;
+    let currentLeaderboardType = 'score';
 
     let playerName = localStorage.getItem('flapup_player_name') || '';
     let groupKey = localStorage.getItem('flapup_group_key') || '';
@@ -418,6 +426,15 @@
         else if (s >= 20) return '🦜';
         else if (s >= 10) return '🐥';
         else return '🐣'; 
+    }
+
+    // NOUVEAU: Fonction pour obtenir l'emoji du titre GAME OVER en fonction du score
+    function getGameOverTitleEmoji(s) {
+        if (s >= 150) return '🧌';
+        else if (s >= 100) return '🪽';
+        else if (s >= 51) return '🍖'; // 51-99
+        else if (s >= 10) return '🍗'; // 10-50
+        else return '🍳';             // 0-9
     }
 
     try {
@@ -478,18 +495,23 @@
     function getCreditDisplayString() {
         updateCreditsSystem();
         let elapsed = Date.now() - lastCreditTime;
-        let remainingMinutes = Math.ceil((REFILL_TIME_MS - elapsed) / (60 * 1000));
-        if (credits > 0) {
-            return credits < MAX_CREDITS ? `🪺 ${credits} (+1 ⌛ ${remainingMinutes}m)` : `🪺 ${credits}`;
-        } else {
-            return `🪹 0 (+1 ⌛ ${remainingMinutes}m)`;
+        // Assurer que remainingMinutes n'est jamais négatif
+        let remainingMs = REFILL_TIME_MS - elapsed;
+        let remainingMinutes = Math.ceil(Math.max(0, remainingMs) / (60 * 1000));
+
+        let mainEmoji = credits > 0 ? '🪺' : '🪹';
+        let displayHtml = `<span class="credit-emoji-lg">${mainEmoji}</span> ${credits}`;
+
+        if (credits < MAX_CREDITS) {
+            displayHtml += ` (+1 ⌛ ${remainingMinutes}m)`;
         }
+        return displayHtml;
     }
 
     function refreshUI() {
-        const creditText = getCreditDisplayString();
-        startCreditDisplay.textContent = creditText;
-        gameOverCreditDisplay.textContent = creditText;
+        const creditTextHtml = getCreditDisplayString();
+        startCreditDisplay.innerHTML = creditTextHtml;
+        gameOverCreditDisplay.innerHTML = creditTextHtml;
 
         let gameCost = COST_NORMAL_GAME + (guideRequestedForNextGame ? COST_GUIDE_OPTION : 0);
         if (selectedStartLevel === 30) gameCost += COST_LEVEL_30;
@@ -525,15 +547,39 @@
         }
     }
 
-    async function fetchLeaderboard() {
+    function toggleLeaderboardType() {
+        currentLeaderboardType = (currentLeaderboardType === 'score') ? 'credit' : 'score';
+        fetchLeaderboard(currentLeaderboardType);
+    }
+
+    async function fetchLeaderboard(type = currentLeaderboardType) {
         if (!supabaseClient) {
             leaderboardList.innerHTML = '<div style="font-size:8px; color:#ccc;">Classement indisponible</div>';
             return;
         }
+
+        let orderColumn = 'score';
+        let titleText = '🏆 Top Flapper ►';
+        let valueKey = 'score';
+        let valueEmoji = ''; 
+
+        if (type === 'credit') {
+            orderColumn = 'credit';
+            titleText = '🎗️ Top Farmer ◄';
+            valueKey = 'credit';
+            valueEmoji = '🪺'; 
+        } else { 
+            orderColumn = 'score';
+            titleText = '🏆 Top Flapper ►';
+            valueKey = 'score';
+        }
+        
+        leaderboardTitle.textContent = titleText;
+
         try {
             let query = supabaseClient
                 .from('leaderboard')
-                .select('name, score, emoji');
+                .select('name, score, credit, emoji');
 
             let currentGroup = groupKeyInput.value.trim();
             if (currentGroup) {
@@ -541,7 +587,7 @@
             }
 
             const { data, error } = await query
-                .order('score', { ascending: false })
+                .order(orderColumn, { ascending: false })
                 .limit(5);
 
             if (error) throw error;
@@ -554,10 +600,13 @@
             let html = '';
             data.forEach((row, index) => {
                 let medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '▫️';
-                html += `<div class="lb-row"><span>${medal} ${row.name || 'Anonyme'}</span><span><b>${row.score}</b> ${row.emoji || ''}</span></div>`;
+                let displayedValue = row[valueKey] || 0;
+                let displayedEmoji = (type === 'credit') ? valueEmoji : (row.emoji || '');
+                html += `<div class="lb-row"><span>${medal} ${row.name || 'Anonyme'}</span><span><b>${displayedValue}</b> ${displayedEmoji}</span></div>`;
             });
             leaderboardList.innerHTML = html;
         } catch (err) {
+            console.error("Error fetching leaderboard:", err);
             leaderboardList.innerHTML = '<div style="font-size:11px; color:#ffcc00;">Erreur de chargement</div>';
         }
     }
@@ -592,7 +641,7 @@
                     group_key: group,
                     updated_at: new Date().toISOString()
                 }, { onConflict: 'name' })
-                .select(); // Force le retour de la ligne pour éviter l'erreur success: no rows returned
+                .select();
 
             if (error) throw error;
             showTemporaryMessage("Données enregistrées !");
@@ -611,6 +660,8 @@
     startLevel50Btn.addEventListener('click', (e) => { e.stopPropagation(); selectedStartLevel = selectedStartLevel === 50 ? 0 : 50; saveGameData(); refreshUI(); });
     gameoverLevel30Btn.addEventListener('click', (e) => { e.stopPropagation(); selectedStartLevel = selectedStartLevel === 30 ? 0 : 30; saveGameData(); refreshUI(); });
     gameoverLevel50Btn.addEventListener('click', (e) => { e.stopPropagation(); selectedStartLevel = selectedStartLevel === 50 ? 0 : 50; saveGameData(); refreshUI(); });
+
+    leaderboardTitle.addEventListener('click', toggleLeaderboardType);
 
     let firstJumpOccurred = false; 
     const bird = { x: 60, y: 280, radius: 15, gravity: 0.28, jump: -6.4, velocity: 0, emoji: '🥚' };
@@ -632,8 +683,8 @@
         else if (s >= 60) return '🌸';
         else if (s >= 50) return '🎋';
         else if (s >= 40) return '🪨';
-        else if (s >= 30) return '🌵';
-        else if (s >= 20) return '🪾';
+        else if (s >= 30) return '🪾';
+        else if (s >= 20) return '🌵';
         else if (s >= 10) return '🪵';
         else return '🌿';
     }
@@ -809,6 +860,8 @@
         finalScoreEmojiDisplay.textContent = getPlayerEmojiForScore(score);
         bestScoreValueDisplay.textContent = bestScore;
         bestScoreEmojiDisplay.textContent = getPlayerEmojiForScore(bestScore);
+        
+        gameOverTitleEmoji.textContent = getGameOverTitleEmoji(score); // NOUVEAU: Mise à jour de l'emoji du titre GAME OVER
         
         refreshUI();
         gameOverScreen.style.display = 'flex';
