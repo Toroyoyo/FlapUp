@@ -163,7 +163,7 @@
         .lb-row:last-child {
             border-bottom: none;
         }
-        #name-input-container {
+              #name-input-container {
             display: flex;
             flex-direction: column;
             gap: 5px;
@@ -173,14 +173,23 @@
         .input-row {
             display: flex;
             gap: 5px;
+            width: 100%; /* Permet aux inputs de s'adapter au conteneur */
+            justify-content: center; /* Centre les inputs */
         }
         #player-name-input, #group-key-input {
-            padding: 6px;
-            border-radius: 8px;
-            border: none;
+            /* STYLES MODIFIÉS ICI */
+            background: rgba(0, 0, 0, 0.3); /* Fond sombre semi-transparent */
+            color: white; /* Texte blanc */
+            border: 1px solid rgba(255, 255, 255, 0.2); /* Bordure subtile */
+            border-radius: 10px; /* Coins arrondis */
+            padding: 6px 10px; /* Padding ajusté */
             font-size: 13px;
             width: 120px;
             text-align: center;
+            outline: none; /* Supprime le contour bleu au focus */
+        }
+        #player-name-input::placeholder, #group-key-input::placeholder {
+            color: rgba(255, 255, 255, 0.6); /* Couleur du placeholder */
         }
         #score-display {
             position: absolute;
