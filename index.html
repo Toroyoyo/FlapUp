@@ -619,7 +619,7 @@
                 html = formatLeaderboardHtml(data, valueKey, playerName, 'topCredit', null); // isTop5View implicite
 
             } else if (type === 'allPlayersScore') { // NOUVEAU: Classement de tous les joueurs
-                titleText = 'Flapper Rank ◄';
+                titleText = '🎯 Flapper Rank ◄';
                 valueKey = 'score';
                 // PAS de limit() ici pour obtenir tous les joueurs
                 ({ data, error } = await query
