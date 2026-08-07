@@ -169,6 +169,14 @@
         .lb-row:last-child {
             border-bottom: none;
         }
+        /* NOUVEAU STYLE: pour mettre en évidence le joueur actuel dans le classement */
+        .lb-row.lb-row-player {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid #ffe082; /* Bordure pour plus de visibilité */
+            border-radius: 5px;
+            font-weight: bold;
+            color: #ffe082; /* Texte plus visible */
+        }
               #name-input-container {
             display: flex;
             flex-direction: column;
@@ -344,7 +352,7 @@
             supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         }
     } catch(e) {
-        console.warn("Supabase non configuré");
+        console.warn("Supabase non configuré ou erreur à la création du client:", e);
     }
 
     const canvas = document.getElementById('gameCanvas');
@@ -379,7 +387,7 @@
     const tempMessage = document.getElementById('temp-message');
     const container = document.getElementById('game-container');
     const leaderboardTitle = document.getElementById('leaderboard-title');
-    const gameOverTitleEmoji = document.getElementById('game-over-title-emoji'); // NOUVEAU: Référence à l'emoji du titre GAME OVER
+    const gameOverTitleEmoji = document.getElementById('game-over-title-emoji'); 
 
     let gameState = 'START';
     let score = 0;
@@ -389,7 +397,9 @@
     let showOptimalPathGuide = false;
     let guideRequestedForNextGame = false;
     let selectedStartLevel = 0;
-    let currentLeaderboardType = 'score';
+    
+    // MODIFIÉ : currentLeaderboardType peut être 'topScore', 'topCredit', ou 'allPlayersScore'
+    let currentLeaderboardType = 'topScore'; 
 
     let playerName = localStorage.getItem('flapup_player_name') || '';
     let groupKey = localStorage.getItem('flapup_group_key') || '';
@@ -428,7 +438,6 @@
         else return '🐣'; 
     }
 
-    // NOUVEAU: Fonction pour obtenir l'emoji du titre GAME OVER en fonction du score
     function getGameOverTitleEmoji(s) {
         if (s >= 150) return '🦖';
         else if (s >= 100) return '🪽';
@@ -546,84 +555,160 @@
             lvl50Btn.style.display = 'none';
         }
     }
-
+    
+    // MODIFIÉ : Nouvelle logique pour toggleLeaderboardType
     function toggleLeaderboardType() {
-        currentLeaderboardType = (currentLeaderboardType === 'score') ? 'credit' : 'score';
+        if (currentLeaderboardType === 'topScore') {
+            currentLeaderboardType = 'topCredit';
+        } else if (currentLeaderboardType === 'topCredit') {
+            currentLeaderboardType = 'allPlayersScore'; // Nouvelle vue
+        } else { // currentLeaderboardType === 'allPlayersScore'
+            currentLeaderboardType = 'topScore';
+        }
         fetchLeaderboard(currentLeaderboardType);
     }
 
+    // MODIFIÉ : Logique de fetchLeaderboard réécrite
     async function fetchLeaderboard(type = currentLeaderboardType) {
-        if (!supabaseClient) {
-            leaderboardList.innerHTML = '<div style="font-size:8px; color:#ccc;">Classement indisponible</div>';
+        // Ajout de vérifications supplémentaires pour le client Supabase
+        if (!supabaseClient || typeof supabaseClient.from !== 'function') {
+            console.error("CRITICAL: supabaseClient est null ou invalide. Supabase non initialisé.");
+            leaderboardList.innerHTML = '<div style="font-size:8px; color:#ccc;">Classement indisponible (client Supabase non prêt)</div>';
             return;
         }
 
-        let orderColumn = 'score';
-        let titleText = '🏆 Top Flapper ►';
+        let titleText = '';
         let valueKey = 'score';
         let valueEmoji = ''; 
-
-        if (type === 'credit') {
-            orderColumn = 'credit';
-            titleText = '🎗️ Top Farmer ◄';
-            valueKey = 'credit';
-            valueEmoji = '🪺'; 
-        } else { 
-            orderColumn = 'score';
-            titleText = '🏆 Top Flapper ►';
-            valueKey = 'score';
-        }
+        leaderboardList.innerHTML = 'Chargement...'; // Afficher "Chargement..." pendant la requête
         
-        leaderboardTitle.textContent = titleText;
-
         try {
-            let query = supabaseClient
-                .from('leaderboard')
-                .select('name, score, credit, emoji');
+            const currentGroup = groupKeyInput.value.trim();
+            let data = [];
+            let error = null;
+            let html = '';
+            let currentPlayerOverallRank = null; // Rang du joueur actuel dans le classement complet
+            
+            // Initialisation de la requête de base
+            let query = supabaseClient.from('leaderboard').select('name, score, credit, emoji');
 
-            let currentGroup = groupKeyInput.value.trim();
+            // Application du filtre de groupe si présent et vérification de la méthode .eq
             if (currentGroup) {
+                if (typeof query.eq !== 'function') {
+                    console.error("CRITICAL: L'objet Query Builder de Supabase est manquant de la méthode .eq. Le client Supabase pourrait être corrompu ou mal initialisé.", { query });
+                    throw new Error("Erreur interne du client Supabase: .eq manquant.");
+                }
                 query = query.eq('group_key', currentGroup);
             }
 
-            const { data, error } = await query
-                .order(orderColumn, { ascending: false })
-                .limit(5);
+            if (type === 'topScore') {
+                titleText = '🏆 Top Flapper ►';
+                valueKey = 'score';
+                ({ data, error } = await query
+                    .order(valueKey, { ascending: false })
+                    .limit(5));
+                html = formatLeaderboardHtml(data, valueKey, playerName, 'topScore', null); // isTop5View implicite
 
-            if (error) throw error;
+            } else if (type === 'topCredit') {
+                titleText = '🎗️ Top Farmer ►';
+                valueKey = 'credit';
+                valueEmoji = '🪺'; 
+                ({ data, error } = await query
+                    .order(valueKey, { ascending: false })
+                    .limit(5));
+                html = formatLeaderboardHtml(data, valueKey, playerName, 'topCredit', null); // isTop5View implicite
 
-            if (!data || data.length === 0) {
-                leaderboardList.innerHTML = '<div style="font-size:12px;">Aucun score enregistré</div>';
-                return;
+            } else if (type === 'allPlayersScore') { // NOUVEAU: Classement de tous les joueurs
+                titleText = 'Flapper Rank ◄';
+                valueKey = 'score';
+                // PAS de limit() ici pour obtenir tous les joueurs
+                ({ data, error } = await query
+                    .order(valueKey, { ascending: false })); 
+
+                if (data && playerName) {
+                    const foundPlayerIndex = data.findIndex(p => p.name === playerName);
+                    if (foundPlayerIndex !== -1) {
+                        currentPlayerOverallRank = foundPlayerIndex + 1;
+                    }
+                }
+                html = formatLeaderboardHtml(data, valueKey, playerName, 'allPlayersScore', currentPlayerOverallRank);
             }
 
-            let html = '';
-            data.forEach((row, index) => {
-                let medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '▫️';
-                let displayedValue = row[valueKey] || 0;
-                let displayedEmoji = (type === 'credit') ? valueEmoji : (row.emoji || '');
-                html += `<div class="lb-row"><span>${medal} ${row.name || 'Anonyme'}</span><span><b>${displayedValue}</b> ${displayedEmoji}</span></div>`;
-            });
+            if (error) {
+                console.error("Supabase query error:", error);
+                throw new Error(`Erreur Supabase: ${error.message || 'Inconnu'}. Code: ${error.code || 'N/A'}`);
+            }
+
+            if (!data || data.length === 0) {
+                leaderboardList.innerHTML = '<div style="font-size:12px;">Aucun score enregistré.</div>';
+                return;
+            }
+            
+            leaderboardTitle.textContent = titleText;
             leaderboardList.innerHTML = html;
+
         } catch (err) {
-            console.error("Error fetching leaderboard:", err);
-            leaderboardList.innerHTML = '<div style="font-size:11px; color:#ffcc00;">Erreur de chargement</div>';
+            console.error("Generic leaderboard fetch error:", err);
+            leaderboardList.innerHTML = `<div style="font-size:11px; color:#ffcc00;">Erreur de chargement : ${err.message || 'Inconnu'}. Consultez la console pour plus de détails.</div>`;
         }
+    }
+
+    // MODIFIÉ : Fonction d'aide pour formater le HTML du classement
+    // Ajout d'un paramètre `viewType` pour gérer les médailles/rangs et `currentPlayerOverallRank` pour le rang du joueur
+    function formatLeaderboardHtml(data, valueKey, currentPlayerName = null, viewType, currentPlayerOverallRank = null) {
+        let html = '';
+        if (!data || data.length === 0) return '';
+
+        data.forEach((row, index) => {
+            let medal = '';
+            let rankDisplay = '';
+            let isPlayerRow = (currentPlayerName && row.name === currentPlayerName);
+            
+            if (viewType === 'topScore' || viewType === 'topCredit') {
+                // Pour les vues Top 5, affichage du rang numérique et des médailles pour les 3 premiers
+                rankDisplay = `${index + 1}.`;
+                medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index === 3 ? '🔸' : index === 4 ? '▫️' : '';
+            } else if (viewType === 'allPlayersScore') {
+                // Pour la vue "Flap Rank Complet", affichage du rang numérique pour tous, et mise en évidence du joueur actuel
+                if (isPlayerRow) {
+                    medal = '👉'; // Mettre en évidence le joueur actuel avec une flèche
+                    rankDisplay = `Rank: ${currentPlayerOverallRank || (index + 1)}.`; // Utiliser le rang global fourni
+                } else {
+                    rankDisplay = `${index + 1}.`;
+                }
+            }
+            
+            let displayedValue = row[valueKey] || 0;
+            let displayedEmoji = (valueKey === 'credit') ? '🪺' : (row.emoji || '');
+            
+            const rowClass = isPlayerRow ? 'lb-row-player' : '';
+
+            const nameDisplay = `${rankDisplay ? (rankDisplay + ' ') : ''}${row.name || 'Anonyme'}`;
+            html += `<div class="lb-row ${rowClass}"><span>${medal} ${nameDisplay}</span><span><b>${displayedValue}</b> ${displayedEmoji}</span></div>`;
+        });
+        return html;
     }
 
     submitScoreBtn.addEventListener('click', async () => {
         let name = playerNameInput.value.trim();
-        let group = groupKeyInput.value.trim() || 'All';
         if (!name) {
             showTemporaryMessage("Entrez un pseudo unique !");
             return;
         }
+        
+        // Si groupKey est vide, on envoie null à la DB pour qu'elle soit vraiment optionnelle
+        let groupValueForDb = null;
+        const trimmedGroupKey = groupKeyInput.value.trim();
+        if (trimmedGroupKey !== '') {
+            groupValueForDb = trimmedGroupKey;
+        }
+
         playerName = name;
-        groupKey = group === 'All' ? '' : group;
+        groupKey = trimmedGroupKey; // Mettre à jour la variable locale `groupKey` pour `localStorage`
         saveGameData();
 
         if (!supabaseClient) {
-            showTemporaryMessage("Réessayer plus tard...");
+            showTemporaryMessage("Réessayer plus tard (client Supabase non prêt)...");
             return;
         }
 
@@ -638,7 +723,7 @@
                     score: bestScore, 
                     emoji: getPlayerEmojiForScore(bestScore),
                     credit: credits,
-                    group_key: group,
+                    group_key: groupValueForDb, // Utilise la valeur potentiellement null
                     updated_at: new Date().toISOString()
                 }, { onConflict: 'name' })
                 .select();
@@ -647,7 +732,8 @@
             showTemporaryMessage("Données enregistrées !");
             fetchLeaderboard();
         } catch (err) {
-            showTemporaryMessage("Erreur lors de l'envoi");
+            console.error("Error submitting score:", err);
+            showTemporaryMessage(`Erreur lors de l'envoi du score: ${err.message || 'Inconnu'}`);
         } finally {
             submitScoreBtn.disabled = false;
             submitScoreBtn.textContent = "Envoyer au classement";
@@ -664,7 +750,7 @@
     leaderboardTitle.addEventListener('click', toggleLeaderboardType);
 
     let firstJumpOccurred = false; 
-    const bird = { x: 60, y: 280, radius: 15, gravity: 0.28, jump: -6.4, velocity: 0, emoji: '🥚' };
+    const bird = { x: 60, y: 280, radius: 12, gravity: 0.28, jump: -6.4, velocity: 0, emoji: '🥚' };
     let pipes = [];
     const pipeWidth = 50;
     const pipeGap = 165;
@@ -862,7 +948,7 @@
         bestScoreValueDisplay.textContent = bestScore;
         bestScoreEmojiDisplay.textContent = getPlayerEmojiForScore(bestScore);
         
-        gameOverTitleEmoji.textContent = getGameOverTitleEmoji(score); // NOUVEAU: Mise à jour de l'emoji du titre GAME OVER
+        gameOverTitleEmoji.textContent = getGameOverTitleEmoji(score); 
         
         refreshUI();
         gameOverScreen.style.display = 'flex';
