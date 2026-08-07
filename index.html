@@ -430,7 +430,7 @@
 
     // NOUVEAU: Fonction pour obtenir l'emoji du titre GAME OVER en fonction du score
     function getGameOverTitleEmoji(s) {
-        if (s >= 150) return '🧌';
+        if (s >= 150) return '🦖';
         else if (s >= 100) return '🪽';
         else if (s >= 51) return '🍖'; // 51-99
         else if (s >= 10) return '🍗'; // 10-50
@@ -676,11 +676,12 @@
     ];
 
     function getObstacleEmojiForScore(s) {
-        if (s >= 100) return '🔥';
-        else if (s >= 90) return '☄️';
-        else if (s >= 80) return '🌪️-';
-        else if (s >= 70) return '🍀';
-        else if (s >= 60) return '🌸';
+        if (s >= 150) return '☄️';
+        else if (s >= 100) return '🔥';
+        else if (s >= 90) return '✨';
+        else if (s >= 80) return '🍀';
+        else if (s >= 70) return '🌸';
+        else if (s >= 60) return '🌻';
         else if (s >= 50) return '🎋';
         else if (s >= 40) return '🪨';
         else if (s >= 30) return '🪾';
